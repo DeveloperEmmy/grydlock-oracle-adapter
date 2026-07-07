@@ -66,11 +66,11 @@ graph TB
 
 <!-- TODO: fill in with real file paths once implementation begins -->
 
-| Component | Role | Status |
-| --- | --- | --- |
-| `RiskOracle` interface | Defines the `getScore(destination)` contract | Designed, not yet committed to source |
-| `StubOracle` | Fixed/lookup-table score source for local dev | Designed, not yet committed to source |
-| `SorobanOracle` | Live client against the on-chain oracle contract | Not started |
+| Component              | Role                                             | Status                                |
+| ---------------------- | ------------------------------------------------ | ------------------------------------- |
+| `RiskOracle` interface | Defines the `getScore(destination)` contract     | Designed, not yet committed to source |
+| `StubOracle`           | Fixed/lookup-table score source for local dev    | Designed, not yet committed to source |
+| `SorobanOracle`        | Live client against the on-chain oracle contract | Not started                           |
 
 ## Interface (design)
 
@@ -93,9 +93,9 @@ The extension depends on this shape and nothing beneath it. Two implementations 
 
 ```ts
 // illustrative
-const oracle = new StubOracle();            // swap for SorobanOracle later
-const score = await oracle.getScore(dest);  // 0–100
-showWarning(score);                         // extension maps score → tier
+const oracle = new StubOracle(); // swap for SorobanOracle later
+const score = await oracle.getScore(dest); // 0–100
+showWarning(score); // extension maps score → tier
 ```
 
 ## Repository Structure
@@ -173,12 +173,12 @@ Gryd Lock Oracle Adapter is part of the Gryd Lock project. Contribution guidelin
 
 <!-- TODO: confirm repo names/roles once the org structure is finalized -->
 
-| Repo | Role | Primary language |
-| --- | --- | --- |
-| **`grydlock-extension`** _(TBD)_ | The browser extension that surfaces risk warnings in the signing flow | TypeScript |
-| **`grydlock-oracle-adapter`** _(this repo)_ | Read-only client that fetches a 0–100 risk score from the on-chain oracle and exposes it behind the `RiskOracle` interface | TypeScript |
-| **`grydlock-testkit`** _(TBD)_ | Evaluation harness that exercises the extension against `StubOracle` | TypeScript |
-| Risk oracle contract _(TBD)_ | On-chain Soroban contract that computes and serves risk scores via `get_score()` | Rust (Soroban) |
+| Repo                                        | Role                                                                                                                       | Primary language |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **`grydlock-extension`** _(TBD)_            | The browser extension that surfaces risk warnings in the signing flow                                                      | TypeScript       |
+| **`grydlock-oracle-adapter`** _(this repo)_ | Read-only client that fetches a 0–100 risk score from the on-chain oracle and exposes it behind the `RiskOracle` interface | TypeScript       |
+| **`grydlock-testkit`** _(TBD)_              | Evaluation harness that exercises the extension against `StubOracle`                                                       | TypeScript       |
+| Risk oracle contract _(TBD)_                | On-chain Soroban contract that computes and serves risk scores via `get_score()`                                           | Rust (Soroban)   |
 
 ## Support
 
