@@ -176,9 +176,7 @@ Covers:
 
 ## License
 
-<!-- TODO: pick and add a LICENSE file -->
-
-TBD
+MIT
 
 ## Contributing
 
