@@ -170,11 +170,9 @@ Covers:
 
 ## Dependencies
 
-<!-- TODO: pin real versions once package.json exists -->
-
-- TypeScript
-- `soroban-client` / Soroban SDK
-- Stellar SDK (JS)
+- TypeScript ^6.0.3, Vitest ^4.1.10, ESLint ^10.6.0 + typescript-eslint ^8.63.0, Prettier ^3.9.4 — see `package.json` for the full, pinned list
+- `soroban-client` / Soroban SDK — _planned, for `SorobanOracle`_
+- Stellar SDK (JS) — _planned, for `SorobanOracle`_
 
 ## License
 
