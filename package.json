@@ -10,6 +10,9 @@
     "risk-oracle",
     "gryd-lock"
   ],
+  "scripts": {
+    "test": "vitest run"
+  },
   "devDependencies": {
     "@types/node": "^26.1.0",
     "typescript": "^6.0.3",
