@@ -33,11 +33,9 @@ At a high level, it does one thing, deliberately narrowly scoped:
 ## Features
 
 - **`RiskOracle` interface** — one method, `getScore(destination)`, that both implementations satisfy
-- **`StubOracle`** — fixed or lookup-table score source for local development and the `grydlock-testkit` evaluation; no network calls
+- **`StubOracle`** _(implemented)_ — hardcoded lookup-table score source for local development and the `grydlock-testkit` evaluation; no network calls
 - **`SorobanOracle`** _(planned)_ — calls `get_score()` on the live on-chain risk oracle contract and returns the result
 - **Caching and fallback** _(planned)_ — a slow or unreachable oracle degrades gracefully instead of stalling the signing flow
-
-<!-- TODO: expand this list as real implementation features land -->
 
 ## Architecture
 
