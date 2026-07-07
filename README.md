@@ -11,7 +11,7 @@ Read-client that fetches a 0–100 risk score for a Stellar address or asset fro
 
 `grydlock-oracle-adapter` is the closest thing Gryd Lock has to a backend — but it runs no server. It is a small, read-only client: given a destination, it calls a Soroban smart contract, reads a score, and returns it. Nothing more.
 
-> **Status:** Interface defined. A stub score source works for local development. A live oracle connection is **not yet wired.**
+> **Status:** `StubOracle` is implemented and returning scores. A live oracle connection is **not yet wired.**
 
 ### The Problem
 
