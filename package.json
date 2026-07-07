@@ -4,6 +4,9 @@
   "description": "Read-client that fetches a 0-100 risk score for a Stellar address or asset from an on-chain risk oracle.",
   "license": "UNLICENSED",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "keywords": [
     "stellar",
     "soroban",
