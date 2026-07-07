@@ -11,6 +11,7 @@
     "gryd-lock"
   ],
   "scripts": {
+    "build": "tsc",
     "test": "vitest run"
   },
   "devDependencies": {
