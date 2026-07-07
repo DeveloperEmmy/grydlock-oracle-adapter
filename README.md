@@ -64,13 +64,11 @@ graph TB
 
 ### Core Components
 
-<!-- TODO: fill in with real file paths once implementation begins -->
-
 | Component | Role | Status |
 | --- | --- | --- |
-| `RiskOracle` interface | Defines the `getScore(destination)` contract | Designed, not yet committed to source |
-| `StubOracle` | Fixed/lookup-table score source for local dev | Designed, not yet committed to source |
-| `SorobanOracle` | Live client against the on-chain oracle contract | Not started |
+| `src/RiskOracle.ts` | Defines the `getScore(destination)` contract | Implemented |
+| `src/StubOracle.ts` | Hardcoded lookup-table score source for local dev | Implemented, tested |
+| `src/SorobanOracle.ts` | Live client against the on-chain oracle contract | Not started |
 
 ## Interface (design)
 
