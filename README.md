@@ -160,7 +160,7 @@ Covers:
 
 ## Roadmap
 
-- [ ] Define the `RiskOracle` interface and ship `StubOracle` _(in progress)_
+- [x] Define the `RiskOracle` interface and ship `StubOracle`
 - [ ] Wire `StubOracle` into the extension and confirm the query path end to end on testnet
 - [ ] Implement `SorobanOracle` against a live oracle contract on testnet
 - [ ] Add caching and a timeout / fallback so a slow or unreachable oracle degrades gracefully instead of stalling the signing flow
