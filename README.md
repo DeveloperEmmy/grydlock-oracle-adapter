@@ -4,7 +4,6 @@
 [![Soroban Smart Contracts](https://img.shields.io/badge/Smart%20Contracts-Soroban-purple)](https://soroban.stellar.org)
 [![License: TBD](https://img.shields.io/badge/License-TBD-lightgrey.svg)](#license)
 [![Status: In Development](https://img.shields.io/badge/status-in%20development-yellow)](#roadmap)
-[![CI](https://github.com/Gryd-lock/grydlock-oracle-adapter/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
 Read-client that fetches a 0–100 risk score for a Stellar address or asset from an on-chain risk oracle, and exposes it to the Gryd Lock extension behind a stable interface.
 
@@ -12,7 +11,7 @@ Read-client that fetches a 0–100 risk score for a Stellar address or asset fro
 
 `grydlock-oracle-adapter` is the closest thing Gryd Lock has to a backend — but it runs no server. It is a small, read-only client: given a destination, it calls a Soroban smart contract, reads a score, and returns it. Nothing more.
 
-> **Status:** `RiskOracle` interface and `StubOracle` are implemented and tested. A live oracle connection (`SorobanOracle`) is **not yet wired.**
+> **Status:** Interface defined. A stub score source works for local development. A live oracle connection is **not yet wired.**
 
 ### The Problem
 
@@ -33,9 +32,11 @@ At a high level, it does one thing, deliberately narrowly scoped:
 ## Features
 
 - **`RiskOracle` interface** — one method, `getScore(destination)`, that both implementations satisfy
-- **`StubOracle`** _(implemented)_ — hardcoded lookup-table score source for local development and the `grydlock-testkit` evaluation; no network calls
+- **`StubOracle`** — fixed or lookup-table score source for local development and the `grydlock-testkit` evaluation; no network calls
 - **`SorobanOracle`** _(planned)_ — calls `get_score()` on the live on-chain risk oracle contract and returns the result
 - **Caching and fallback** _(planned)_ — a slow or unreachable oracle degrades gracefully instead of stalling the signing flow
+
+<!-- TODO: expand this list as real implementation features land -->
 
 ## Architecture
 
@@ -63,11 +64,13 @@ graph TB
 
 ### Core Components
 
-| Component               | Role                                              | Status                       |
-| ------------------------ | -------------------------------------------------- | ----------------------------- |
-| `src/RiskOracle.ts`      | Defines the `getScore(destination)` contract       | Implemented                   |
-| `src/StubOracle.ts`      | Hardcoded lookup-table score source for local dev  | Implemented, tested           |
-| `src/SorobanOracle.ts`   | Live client against the on-chain oracle contract   | Not started                   |
+<!-- TODO: fill in with real file paths once implementation begins -->
+
+| Component | Role | Status |
+| --- | --- | --- |
+| `RiskOracle` interface | Defines the `getScore(destination)` contract | Designed, not yet committed to source |
+| `StubOracle` | Fixed/lookup-table score source for local dev | Designed, not yet committed to source |
+| `SorobanOracle` | Live client against the on-chain oracle contract | Not started |
 
 ## Interface (design)
 
@@ -90,77 +93,52 @@ The extension depends on this shape and nothing beneath it. Two implementations 
 
 ```ts
 // illustrative
-const oracle = new StubOracle(); // swap for SorobanOracle later
-const score = await oracle.getScore(dest); // 0–100
-showWarning(score); // extension maps score → tier
+const oracle = new StubOracle();            // swap for SorobanOracle later
+const score = await oracle.getScore(dest);  // 0–100
+showWarning(score);                         // extension maps score → tier
 ```
 
 ## Repository Structure
+
+<!-- TODO: update once the real layout exists -->
 
 ```
 grydlock-oracle-adapter/
 │
 ├── README.md                         ← This file
-├── package.json                      ← Package manifest and npm scripts
-├── tsconfig.json                     ← TypeScript compiler config (strict mode)
-├── eslint.config.mjs                 ← ESLint flat config
-├── .prettierrc.json                  ← Prettier config
-├── vitest.config.ts                  ← Vitest config
+├── package.json                      ← Placeholder — not yet created
+├── tsconfig.json                     ← Placeholder — not yet created
 │
-├── .github/workflows/ci.yml          ← CI: typecheck, lint, format check, test, build
+├── src/                               ← Placeholder — not yet created
+│   ├── RiskOracle.ts                  ← Interface definition (planned)
+│   ├── StubOracle.ts                  ← Stub implementation (planned)
+│   └── SorobanOracle.ts               ← Live oracle client (planned)
 │
-├── src/
-│   ├── RiskOracle.ts                  ← Interface definition
-│   ├── StubOracle.ts                  ← Hardcoded lookup-table implementation
-│   └── index.ts                       ← Barrel export
-│
-└── tests/
-    └── StubOracle.test.ts             ← getScore range test
+└── tests/                            ← Placeholder — not yet created
 ```
-
-`SorobanOracle` is not yet in `src/` — see [Roadmap](#roadmap).
 
 ## Quick Start
 
-```bash
-npm install
-npm run build      # compile src/ to dist/
-npm test           # run the test suite
-npm run typecheck  # tsc --noEmit
-npm run lint       # eslint .
-npm run format     # prettier --write .
-```
+<!-- TODO: replace with real setup steps once package.json / src exist -->
 
-```ts
-import { StubOracle } from './src';
-
-const oracle = new StubOracle();
-const score = await oracle.getScore('GAKNOWNWASHTRADERWALLETEXAMPLE'); // 95
-```
+Not yet available — the package is still in the interface-design phase. See [Roadmap](#roadmap) for the path to a working `StubOracle`.
 
 ## Tech Stack
 
-- **TypeScript** (strict mode)
-- **Vitest** — test runner
-- **ESLint** + **typescript-eslint** — linting
-- **Prettier** — formatting
-- **Soroban SDK** _(planned)_ — reading the on-chain score
-- **Stellar SDK (JS)** _(planned)_ — address / asset handling
-- **Stellar Testnet** _(planned)_ — all development
+- **TypeScript**
+- **Soroban SDK** — reading the on-chain score
+- **Stellar SDK (JS)** — address / asset handling
+- **Stellar Testnet** — all development
 
 ## Testing
 
-```bash
-npm test
-```
+<!-- TODO: fill in once a test runner and real tests exist -->
 
-Covers:
-
-- `StubOracle.getScore` returns a number within 0–100 for both known (mapped) and unrecognized destinations
+No tests exist yet. Test tooling and coverage will be documented here once `StubOracle` lands.
 
 ## Roadmap
 
-- [x] Define the `RiskOracle` interface and ship `StubOracle`
+- [ ] Define the `RiskOracle` interface and ship `StubOracle` _(in progress)_
 - [ ] Wire `StubOracle` into the extension and confirm the query path end to end on testnet
 - [ ] Implement `SorobanOracle` against a live oracle contract on testnet
 - [ ] Add caching and a timeout / fallback so a slow or unreachable oracle degrades gracefully instead of stalling the signing flow
@@ -173,9 +151,11 @@ Covers:
 
 ## Dependencies
 
-- TypeScript, Vitest, ESLint, typescript-eslint, Prettier — see `package.json` for pinned versions
-- `soroban-client` / Soroban SDK — _planned, for `SorobanOracle`_
-- Stellar SDK (JS) — _planned, for `SorobanOracle`_
+<!-- TODO: pin real versions once package.json exists -->
+
+- TypeScript
+- `soroban-client` / Soroban SDK
+- Stellar SDK (JS)
 
 ## License
 
@@ -193,12 +173,12 @@ Gryd Lock Oracle Adapter is part of the Gryd Lock project. Contribution guidelin
 
 <!-- TODO: confirm repo names/roles once the org structure is finalized -->
 
-| Repo                                        | Role                                                                                                                       | Primary language |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| **`grydlock-extension`** _(TBD)_            | The browser extension that surfaces risk warnings in the signing flow                                                      | TypeScript       |
-| **`grydlock-oracle-adapter`** _(this repo)_ | Read-only client that fetches a 0–100 risk score from the on-chain oracle and exposes it behind the `RiskOracle` interface | TypeScript       |
-| **`grydlock-testkit`** _(TBD)_              | Evaluation harness that exercises the extension against `StubOracle`                                                       | TypeScript       |
-| Risk oracle contract _(TBD)_                | On-chain Soroban contract that computes and serves risk scores via `get_score()`                                           | Rust (Soroban)   |
+| Repo | Role | Primary language |
+| --- | --- | --- |
+| **`grydlock-extension`** _(TBD)_ | The browser extension that surfaces risk warnings in the signing flow | TypeScript |
+| **`grydlock-oracle-adapter`** _(this repo)_ | Read-only client that fetches a 0–100 risk score from the on-chain oracle and exposes it behind the `RiskOracle` interface | TypeScript |
+| **`grydlock-testkit`** _(TBD)_ | Evaluation harness that exercises the extension against `StubOracle` | TypeScript |
+| Risk oracle contract _(TBD)_ | On-chain Soroban contract that computes and serves risk scores via `get_score()` | Rust (Soroban) |
 
 ## Support
 
