@@ -4,6 +4,7 @@
 [![Soroban Smart Contracts](https://img.shields.io/badge/Smart%20Contracts-Soroban-purple)](https://soroban.stellar.org)
 [![License: TBD](https://img.shields.io/badge/License-TBD-lightgrey.svg)](#license)
 [![Status: In Development](https://img.shields.io/badge/status-in%20development-yellow)](#roadmap)
+[![CI](https://github.com/Gryd-lock/grydlock-oracle-adapter/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
 Read-client that fetches a 0–100 risk score for a Stellar address or asset from an on-chain risk oracle, and exposes it to the Gryd Lock extension behind a stable interface.
 
