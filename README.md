@@ -180,9 +180,19 @@ MIT
 
 ## Contributing
 
-<!-- TODO: flesh out once the project has real contribution surface area -->
+grydlock-oracle-adapter is being developed as an open-source contribution to the Stellar ecosystem. We are actively looking for collaborators with experience in:
 
-Gryd Lock Oracle Adapter is part of the Gryd Lock project. Contribution guidelines will be added once the initial `StubOracle` implementation lands.
+- Stellar / Soroban smart contract development (Rust)
+- TypeScript backend and browser-extension development
+- On-chain data analysis and Stellar Horizon API integration
+- Testing and evaluation methodology (`grydlock-testkit`)
+
+Quick checklist for contributions:
+
+- All tests pass: `npm test`
+- Code follows project style guidelines: `npm run lint` and `npm run format:check`
+- New features include tests
+- Documentation is updated
 
 ## Gryd Lock Organization
 
