@@ -111,8 +111,10 @@ grydlock-oracle-adapter/
 ├── eslint.config.mjs                 ← ESLint flat config
 ├── .prettierrc.json                  ← Prettier config
 ├── vitest.config.ts                  ← Vitest config
+├── commitlint.config.js              ← Conventional-commits lint rules
 │
-├── .github/workflows/ci.yml          ← CI: typecheck, lint, format check, test, build
+├── .husky/commit-msg                 ← Local commit-msg hook, runs commitlint
+├── .github/workflows/ci.yml          ← CI: typecheck, lint, format check, test, build, commitlint
 │
 ├── src/
 │   ├── RiskOracle.ts                  ← Interface definition
@@ -200,6 +202,51 @@ Quick checklist for contributions:
 - Code follows project style guidelines: `npm run lint` and `npm run format:check`
 - New features include tests
 - Documentation is updated
+- Commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) style below
+
+### Commit message convention
+
+Commit messages are linted with [commitlint](https://commitlint.js.org/) using the
+[`@commitlint/config-conventional`](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional)
+preset, so that commit history stays parseable for automated semantic versioning. Every commit
+message must follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+Common `<type>` values:
+
+| Type       | Use for                                                        |
+| ---------- | -------------------------------------------------------------- |
+| `feat`     | A new feature                                                  |
+| `fix`      | A bug fix                                                      |
+| `docs`     | Documentation-only changes                                     |
+| `style`    | Formatting changes with no code meaning change (e.g. Prettier) |
+| `refactor` | A code change that neither fixes a bug nor adds a feature      |
+| `test`     | Adding or correcting tests                                     |
+| `chore`    | Tooling, dependency, or build-process changes                  |
+
+Examples:
+
+```
+feat: add SorobanOracle implementation
+fix(RiskOracle): handle missing destination score
+docs: update README license section to MIT
+chore: add commitlint and husky commit-msg hook
+```
+
+This is enforced two ways:
+
+- **Locally** — a husky `commit-msg` hook runs `commitlint` on every commit. Run `npm install`
+  once after cloning so husky installs the hook (via the `prepare` script).
+- **In CI** — the `commitlint` job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+  lints every commit on a pull request, covering contributors who bypass the local hook (e.g.
+  `git commit --no-verify`).
 
 ## Gryd Lock Organization
 
