@@ -20,6 +20,7 @@ jobs:
       - run: npm run format:check
       - run: npm test
       - run: npm run build
+      - run: npm run size
 
   commitlint:
     if: github.event_name == 'pull_request'

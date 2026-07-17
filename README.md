@@ -114,7 +114,10 @@ grydlock-oracle-adapter/
 ├── commitlint.config.js              ← Conventional-commits lint rules
 │
 ├── .husky/commit-msg                 ← Local commit-msg hook, runs commitlint
-├── .github/workflows/ci.yml          ← CI: typecheck, lint, format check, test, build, commitlint
+├── .github/workflows/ci.yml          ← CI: typecheck, lint, format check, test, build, bundle size, commitlint
+│
+├── scripts/
+│   └── bundle-size.mjs               ← esbuild-based bundle-size budget + tree-shaking check
 │
 ├── src/
 │   ├── RiskOracle.ts                  ← Interface definition
@@ -136,6 +139,7 @@ npm test           # run the test suite
 npm run typecheck  # tsc --noEmit
 npm run lint       # eslint .
 npm run format     # prettier --write .
+npm run size       # bundle-size budget + tree-shaking check
 ```
 
 ```ts
@@ -162,6 +166,39 @@ Covers:
 
 - `StubOracle.getScore` returns a number within 0–100 for every destination in the vendored `grydlock-testkit` fixtures, and a default score for unrecognized destinations
 - Fixture destinations labelled `malicious` score higher than those labelled `clean`
+
+## Bundle Size & Tree-Shaking
+
+Because this package ships inside a browser extension (`grydlock-extension`), its footprint
+directly affects extension load time and web-store review. CI enforces both a size budget and
+tree-shaking behavior on every PR:
+
+```bash
+npm run size
+```
+
+The check (`scripts/bundle-size.mjs`) bundles the package with esbuild (minified ESM, from the
+TypeScript source — the same consumption path the extension's bundler will use once the ESM
+build output from #37 lands) for representative import patterns:
+
+| Import pattern                   | Current size (minified) | Budget |
+| -------------------------------- | ----------------------- | ------ |
+| `import { StubOracle }` only     | ~0.8 KB (~0.6 KB gzip)  | 5 KB   |
+| Full barrel (`export * from ..`) | ~0.8 KB (~0.6 KB gzip)  | 10 KB  |
+
+Two things fail CI:
+
+- **Budget regression** — a pattern's minified size exceeds its budget. If the growth is
+  intentional (a real feature), raise the budget in `scripts/bundle-size.mjs` in the same PR
+  and call it out in the PR description.
+- **Tree-shaking leak** — the `StubOracle`-only pattern bundles any module outside its
+  explicit allowlist (`StubOracle`, the `RiskOracle` types, and the score fixtures). This
+  guarantees that importing only `StubOracle` never drags in `SorobanOracle`, aggregation, or
+  other future code; when new modules are added to the barrel, they must be tree-shakeable
+  (no module-level side effects) or the check fails.
+
+**For extension-side contributors:** the "StubOracle only" row is the integration cost of the
+current recommended usage — under 1 KB gzipped added to the extension bundle.
 
 ## Roadmap
 
