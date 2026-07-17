@@ -33,8 +33,11 @@ At a high level, it does one thing, deliberately narrowly scoped:
 
 - **`RiskOracle` interface** — one method, `getScore(destination)`, that both implementations satisfy
 - **`StubOracle`** — lookup-table score source backed by vendored `grydlock-testkit` fixtures, for local development and the `grydlock-testkit` evaluation; no network calls
+- **Middleware pipeline** — `compose(...middlewares)(oracle)` layers cross-cutting concerns (cache, timeout, and the rest of #6–#10/#27/#41 as they land) around any `RiskOracle` with one shared abstraction and a documented ordering
+- **`withCache`** — TTL-based in-memory cache middleware; a fresh entry short-circuits the whole pipeline
+- **`withTimeout`** — bounds a single oracle call, rejecting with `OracleTimeoutError` past the budget
 - **`SorobanOracle`** _(planned)_ — calls `get_score()` on the live on-chain risk oracle contract and returns the result
-- **Caching and fallback** _(planned)_ — a slow or unreachable oracle degrades gracefully instead of stalling the signing flow
+- **Fallback** _(planned)_ — a slow or unreachable oracle degrades gracefully instead of stalling the signing flow
 
 <!-- TODO: expand this list as real implementation features land -->
 
@@ -64,11 +67,14 @@ graph TB
 
 ### Core Components
 
-| Component              | Role                                                                      | Status              |
-| ---------------------- | ------------------------------------------------------------------------- | ------------------- |
-| `src/RiskOracle.ts`    | Defines the `getScore(destination)` contract                              | Implemented         |
-| `src/StubOracle.ts`    | Lookup-table score source, backed by vendored `grydlock-testkit` fixtures | Implemented, tested |
-| `src/SorobanOracle.ts` | Live client against the on-chain oracle contract                          | Not started         |
+| Component                       | Role                                                                      | Status              |
+| ------------------------------- | ------------------------------------------------------------------------- | ------------------- |
+| `src/RiskOracle.ts`             | Defines the `getScore(destination)` contract                              | Implemented         |
+| `src/StubOracle.ts`             | Lookup-table score source, backed by vendored `grydlock-testkit` fixtures | Implemented, tested |
+| `src/OracleMiddleware.ts`       | `OracleMiddleware` type + `compose` pipeline helper                       | Implemented, tested |
+| `src/middleware/withCache.ts`   | TTL in-memory cache middleware (#6 proof of concept)                      | Implemented, tested |
+| `src/middleware/withTimeout.ts` | Per-call timeout middleware (#7 proof of concept)                         | Implemented, tested |
+| `src/SorobanOracle.ts`          | Live client against the on-chain oracle contract                          | Not started         |
 
 `src/fixtures/testkit/` is a vendored, point-in-time copy of `grydlock-testkit`'s
 `destinations.json` and `scores.json` — not a live sync. If the testkit fixtures change, re-copy
@@ -90,6 +96,55 @@ The extension depends on this shape and nothing beneath it. Two implementations 
 
 - **StubOracle** — returns a score from the vendored `grydlock-testkit` fixture lookup table (falling back to a default for unrecognized destinations). Used for development and for the `grydlock-testkit` evaluation. No network.
 - **SorobanOracle** — calls `get_score()` on the live on-chain risk oracle contract and returns the result. Wired in a later phase.
+
+### Composing cross-cutting concerns (middleware)
+
+Caching (#6), timeout (#7), circuit breaking (#8), fallback (#9), retry (#10),
+de-duplication (#27), and logging (#41) are all cross-cutting concerns that wrap a
+`RiskOracle`. Rather than each inventing its own wrapper boilerplate and ad-hoc ordering,
+they share one abstraction:
+
+```ts
+type OracleMiddleware = (next: RiskOracle) => RiskOracle;
+
+compose(...middlewares: OracleMiddleware[]): OracleMiddleware;
+```
+
+Each concern is implemented once as an `OracleMiddleware`; `compose` layers any selection of
+them around an oracle. The **first middleware listed is the outermost layer** — reading the
+list top-to-bottom reads as layers around the oracle, and `compose` results nest
+(`compose(a, compose(b, c))` ≡ `compose(a, b, c)`):
+
+```ts
+import { compose, withCache, withTimeout, StubOracle } from 'grydlock-oracle-adapter';
+
+const oracle = compose(
+  withCache({ ttlMs: 30_000 }), // outermost — a cache hit skips everything below
+  withTimeout({ timeoutMs: 1_500 }), // innermost — bounds the raw oracle call
+)(new StubOracle());
+
+const score = await oracle.getScore(dest); // still just a RiskOracle
+```
+
+`withCache` (#6) and `withTimeout` (#7) are implemented against this abstraction today as
+the proof of concept; the remaining concerns should be built as middlewares when they land.
+
+#### Recommended composition order
+
+Outermost to innermost, with the reason each layer sits where it does:
+
+| #   | Middleware            | Why this position                                                                                                                                                            |
+| --- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | logging (#41)         | Outermost so it observes exactly what the caller experiences — including cache hits, final failures, and true end-to-end latency.                                            |
+| 2   | cache (#6)            | A fresh cached score short-circuits everything below — no dedupe bookkeeping, no breaker state changes, no retries. Fastest path for a signing flow repeating a destination. |
+| 3   | de-duplication (#27)  | Collapses concurrent identical cache-misses into one in-flight call _before_ they can count multiple times against the circuit breaker or spawn parallel retries.            |
+| 4   | circuit breaker (#8)  | Outside retry, so an open circuit fails fast instead of being hammered by retry attempts, and one retry-exhausted failure counts once against the breaker.                   |
+| 5   | retry / backoff (#10) | Inside the breaker, outside timeout: each retry attempt is separately timeout-bounded rather than all attempts sharing one budget.                                           |
+| 6   | timeout (#7)          | Innermost, directly around the raw oracle, so the budget bounds exactly one underlying attempt.                                                                              |
+
+Fallback (#9) has a different shape — it selects between _multiple_ oracles rather than
+wrapping one `next` — so it is not a middleware. It slots in as the oracle a pipeline wraps,
+and each fallback tier can itself be a composed pipeline.
 
 ## How the Extension Uses It
 
@@ -119,12 +174,19 @@ grydlock-oracle-adapter/
 ├── src/
 │   ├── RiskOracle.ts                  ← Interface definition
 │   ├── StubOracle.ts                  ← Lookup-table implementation, backed by fixtures/
+│   ├── OracleMiddleware.ts            ← Middleware type + compose() pipeline helper
+│   ├── middleware/
+│   │   ├── withCache.ts               ← TTL in-memory cache middleware (#6)
+│   │   └── withTimeout.ts             ← Per-call timeout middleware (#7)
 │   ├── SorobanOracle.ts               ← Live oracle client (planned, not yet in src/)
 │   ├── fixtures/testkit/              ← Vendored grydlock-testkit fixtures (destinations.json, scores.json)
 │   └── index.ts                       ← Barrel export
 │
 └── tests/
-    └── StubOracle.test.ts             ← getScore range + label-ordering tests against the fixtures
+    ├── StubOracle.test.ts             ← getScore range + label-ordering tests against the fixtures
+    ├── OracleMiddleware.test.ts       ← compose() ordering, nesting, short-circuit, error propagation
+    ├── withCache.test.ts              ← TTL expiry, per-destination isolation, eviction, no failure caching
+    └── withTimeout.test.ts            ← budget enforcement, late-failure hygiene, cache+timeout composition
 ```
 
 ## Quick Start
@@ -162,6 +224,10 @@ Covers:
 
 - `StubOracle.getScore` returns a number within 0–100 for every destination in the vendored `grydlock-testkit` fixtures, and a default score for unrecognized destinations
 - Fixture destinations labelled `malicious` score higher than those labelled `clean`
+- `compose` applies middlewares with the first argument outermost, nests, supports short-circuiting, and propagates errors through every layer
+- `withCache` serves within-TTL repeats without touching the oracle, expires on TTL, isolates destinations and wrapped oracles, never caches failures, and evicts oldest entries past `maxEntries`
+- `withTimeout` passes fast results through, rejects slow calls with `OracleTimeoutError`, keeps inner errors distinct from timeouts, and silences late failures from abandoned calls (no unhandled rejections)
+- Cache + timeout composed in the recommended order: timeouts are not cached, recovered results are
 
 ## Roadmap
 
