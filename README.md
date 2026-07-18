@@ -324,4 +324,14 @@ For issues and questions:
 
 _Part of the Gryd Lock project. Interface defined, live oracle not yet wired._
 
+## Oracle Error Types
+
+| Error | Code | Meaning | Typical Cause |
+|-------|------|---------|---------------|
+| OracleUnavailableError | ORACLE_UNAVAILABLE | The oracle could not be reached. | Network outage, RPC unavailable |
+| OracleTimeoutError | ORACLE_TIMEOUT | The oracle request timed out. | Slow network or unresponsive RPC |
+| InvalidDestinationError | INVALID_DESTINATION | The supplied Stellar destination is invalid. | Malformed address or asset identifier |
+| UnrecognizedDestinationError | UNRECOGNIZED_DESTINATION | The destination is valid but not recognized. | Destination not present in oracle data |
+| ContractIncompatibilityError | CONTRACT_INCOMPATIBILITY | The adapter is incompatible with the oracle contract. | ABI/version mismatch |
+
 </div>
