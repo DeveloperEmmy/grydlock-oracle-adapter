@@ -54,7 +54,7 @@ stays complete as the public surface grows.
 - **`ProvenanceOracle`** — wraps any `RiskOracle` and emits a structured provenance record (source, timestamp, cache status, latency) for every score, via an injectable `Logger`
 - **`Logger` interface** — minimal structured logging seam (`debug`/`info`/`warn`/`error`) with a no-op default; the library never writes to the console on its own
 - **`SorobanOracle`** _(planned)_ — calls `get_score()` on the live on-chain risk oracle contract and returns the result
-- **Caching and fallback** _(planned)_ — a slow or unreachable oracle degrades gracefully instead of stalling the signing flow
+- **Fallback** _(planned)_ — a slow or unreachable oracle degrades gracefully instead of stalling the signing flow
 
 <!-- TODO: expand this list as real implementation features land -->
 
