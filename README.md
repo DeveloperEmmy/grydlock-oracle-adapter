@@ -4,6 +4,7 @@
 [![Soroban Smart Contracts](https://img.shields.io/badge/Smart%20Contracts-Soroban-purple)](https://soroban.stellar.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status: In Development](https://img.shields.io/badge/status-in%20development-yellow)](#roadmap)
+[![API Reference](https://img.shields.io/badge/docs-API%20reference-blue)](https://gryd-lock.github.io/grydlock-oracle-adapter/)
 
 Read-client that fetches a 0–100 risk score for a Stellar address or asset from an on-chain risk oracle, and exposes it to the Gryd Lock extension behind a stable interface.
 
@@ -28,6 +29,23 @@ At a high level, it does one thing, deliberately narrowly scoped:
 - **🔎 Reads** — takes a destination (Stellar address or asset) and calls the on-chain risk oracle's `get_score()` function via Soroban
 - **🔌 Adapts** — normalizes the oracle response behind a single, stable `RiskOracle` interface so the scoring backend can be swapped without touching the extension
 - **📤 Exposes** — returns a plain 0–100 score to the Gryd Lock extension, with no chain-specific types leaking across the boundary
+
+## Documentation
+
+Full API reference is generated from the source JSDoc with [TypeDoc](https://typedoc.org/) and
+published to GitHub Pages on every push to `main`:
+
+**📖 [gryd-lock.github.io/grydlock-oracle-adapter](https://gryd-lock.github.io/grydlock-oracle-adapter/)**
+
+To build the reference locally:
+
+```bash
+npm run docs        # generate the HTML reference into docs/
+npm run docs:check  # validate JSDoc coverage without emitting files (used in CI)
+```
+
+`docs:check` fails if any exported symbol is missing a doc comment, so the published reference
+stays complete as the public surface grows.
 
 ## Features
 
