@@ -210,6 +210,7 @@ grydlock-oracle-adapter/
 ├── .prettierrc.json                  ← Prettier config
 ├── vitest.config.ts                  ← Vitest config
 ├── commitlint.config.js              ← Conventional-commits lint rules
+├── stryker.config.json               ← Mutation testing config (src/ tree)
 │
 ├── .husky/commit-msg                 ← Local commit-msg hook, runs commitlint
 ├── .github/workflows/ci.yml          ← CI: typecheck, lint, format check, test, build, bundle size, commitlint
@@ -305,6 +306,42 @@ Two things fail CI:
 
 **For extension-side contributors:** the "StubOracle only" row is the integration cost of the
 current recommended usage — under 1 KB gzipped added to the extension bundle.
+
+### Mutation testing
+
+Line/branch coverage only shows whether code executed during a test run, not whether the test
+actually asserted on the result. [Stryker Mutator](https://stryker-mutator.io/) is configured
+(`stryker.config.json`) to measure that: it makes small deliberate changes ("mutants") to
+`src/**/*.ts` — e.g. flipping `??` to `&&`, deleting a return value — and reruns the test suite
+against each one. A mutant that still passes the suite ("survived") marks a gap: the code path
+ran, but nothing would have caught it breaking.
+
+```bash
+npm run test:mutation
+```
+
+**Baseline (established alongside this tooling, `src/StubOracle.ts` at the time):** Stryker found
+2 mutants in the only file with executable logic (`RiskOracle.ts` is a type-only interface and
+`index.ts` is a barrel export — TypeScript erases the former and there's nothing to mutate in the
+latter). Of those 2:
+
+- **1 killed** — the `??` → `&&` mutation in `getScore` is caught by the existing "malicious scores
+  higher than clean scores" test.
+- **1 compile error** — deleting the function body trips `tsc`'s "must return a value" check before
+  the mutant ever reaches a test run. This is caught by the `typescript` checker, not a test; it's
+  effectively an equivalent mutant given the codebase's `strict` TypeScript config, and isn't
+  counted against the mutation score.
+- **0 survived.**
+
+Mutation score: **100%** (1/1 of the mutants Stryker could actually run against).
+
+**Threshold policy:** informational-only for now — `thresholds.break` is `null`, so a low score
+won't fail CI, and mutation testing runs nightly via
+[`.github/workflows/mutation.yml`](.github/workflows/mutation.yml) (also triggerable manually)
+rather than gating every PR, since a full mutation run is slower than the rest of the CI pipeline.
+Revisit this once `SorobanOracle` and the resilience features land and there's a meaningfully
+larger surface — at that point, consider setting `thresholds.break` and/or moving the check into
+the main `ci.yml` pipeline.
 
 ## Roadmap
 
