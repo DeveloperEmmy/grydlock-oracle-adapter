@@ -1,5 +1,10 @@
-export * from './OracleError';
-export { RiskOracle } from './RiskOracle';
+export {
+  RiskOracle,
+  DetailedRiskOracle,
+  ScoredResult,
+  OracleSource,
+  CacheStatus,
+} from './RiskOracle';
 export { StubOracle } from './StubOracle';
-export { DefaultOracle } from './DefaultOracle';
-export { FallbackOracle } from './FallbackOracle';
+export { Logger, LogFields, noopLogger } from './Logger';
+export { ProvenanceOracle, ProvenanceOracleOptions, ScoreProvenance } from './ProvenanceOracle';
